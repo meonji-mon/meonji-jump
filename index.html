@@ -2,7 +2,7 @@
 <html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="icon" href="data:,">
-<title>먼지 점프</title>
+<title>먼지 달려</title>
 <style>
 :root{--bg:#fff;--fg:#111;--mute:#888}
 @media (prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#f0f0f0;--mute:#777}}
@@ -12,7 +12,7 @@ font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",
 canvas{display:block;touch-action:none;width:100%;max-width:960px}
 #mute{position:fixed;top:12px;right:12px;background:none;border:1.5px solid var(--fg);color:var(--fg);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
 </style></head><body>
-<div id="wrap"><canvas id="c" aria-label="먼지 점프 게임"></canvas></div>
+<div id="wrap"><canvas id="c" aria-label="먼지 달려 게임"></canvas></div>
 <button id="mute" type="button">소리 켜짐</button>
 <script>
 (()=>{
@@ -108,7 +108,7 @@ function draw(){const c=col();cx.setTransform(dpr,0,0,dpr,0,0);cx.fillStyle=c.bg
  cx.fillStyle=c.mu;cx.font='13px inherit';cx.font='13px -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';
  cx.fillText('최고 기록 '+String(best).padStart(5,'0'),W-20,52);
  cx.textAlign='center';cx.fillStyle=c.fg;
- if(state==='ready'){cx.font='700 26px -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';cx.fillText('먼지 점프',W/2,95);
+ if(state==='ready'){cx.font='700 26px -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';cx.fillText('먼지 달려',W/2,95);
   cx.font='15px -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';cx.fillStyle=c.mu;cx.fillText(W<600?'점프하려면 탭 · 길게 누르면 더 높이':'점프하려면 스페이스 / 탭 · 길게 누르면 더 높이',W/2,125);}
  if(state==='over'){cx.font='700 26px -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';cx.fillText('게임 오버',W/2,90);
   cx.font='15px -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';cx.fillStyle=c.mu;
