@@ -33,7 +33,7 @@ function initAudio(){if(actx)return;try{actx=new (window.AudioContext||window.we
 ['jump','hit','score'].forEach(n=>fetch('sfx/'+n+'.'+ext).then(r=>r.arrayBuffer()).then(b=>actx.decodeAudioData(b)).then(d=>bufs[n]=d).catch(()=>{}));}catch(e){}}
 function play(n,v=0.5){if(muted||!actx||!bufs[n])return;const s=actx.createBufferSource(),g=actx.createGain();g.gain.value=v;s.buffer=bufs[n];s.connect(g).connect(actx.destination);s.start();}
 // state
-const cat={x:70,y:GROUND,vy:0,w:44,h:34,ground:true};
+const cat={x:70,y:GROUND,vy:0,w:44,h:34,ground:true,phase:0};
 let state='ready',obs=[],speed,score,best=+localStorage.getItem('mj_best')||0,t=0,next,holding=false,last=0,dust=[],flash=0,newBest=false;
 const MAXS=11,G=0.9,JV=-13.5;
 function reset(){obs=[];speed=6;score=0;cat.y=GROUND;cat.vy=0;cat.ground=true;next=60;newBest=false;}
@@ -58,6 +58,7 @@ function spawn(){
 function update(){t++;
  if(state!=='play'){return}
  speed=Math.min(MAXS,6+score/250);
+ if(cat.ground)cat.phase+=0.16+speed*0.03;
  // variable jump: release early cuts rise
  if(!cat.ground){cat.vy+=(!holding&&cat.vy<0)?G*2.2:G;cat.y+=cat.vy;
   if(cat.y>=GROUND){cat.y=GROUND;cat.vy=0;cat.ground=true;for(let i=0;i<5;i++)dust.push({x:cat.x+10+Math.random()*20,y:GROUND,vx:-Math.random()*2,vy:-Math.random()*1.5,l:20});}}
@@ -74,8 +75,18 @@ function update(){t++;
   if((nx-ox)**2+(ny-oy)**2<rr*rr){state='over';last=t;play('hit',0.5);
    if(Math.floor(score)>best){best=Math.floor(score);localStorage.setItem('mj_best',best);newBest=true;}break;}}
 }
-function drawCat(c){const x=cat.x,y=cat.y;cx.fillStyle=c.fg;
- const run=state==='play'&&cat.ground?Math.floor(t/5)%2:0;
+function leg(px,py,ang,len){cx.beginPath();cx.moveTo(px,py);cx.lineTo(px+Math.sin(ang)*len,py+Math.cos(ang)*len);cx.stroke();}
+function drawCat(c){const running=state==='play'&&cat.ground;
+ const ph=cat.phase;const bob=running?-Math.abs(Math.sin(ph))*1.8:0;
+ const x=cat.x,y=cat.y+bob;cx.fillStyle=c.fg;cx.strokeStyle=c.fg;cx.lineCap='round';
+ // legs (pivot at hips/shoulders), drawn first so the body covers the joints
+ let bf,bn,ff,fn,L=11;
+ if(running){const s=0.75;bf=Math.sin(ph)*s;bn=Math.sin(ph+Math.PI)*s;ff=Math.sin(ph+Math.PI*0.5)*s;fn=Math.sin(ph+Math.PI*1.5)*s;}
+ else if(!cat.ground){if(cat.vy<0){bf=-1.05;bn=-0.85;ff=1.25;fn=1.05;L=11;}else{bf=-0.55;bn=-0.35;ff=0.6;fn=0.4;L=11;}}
+ else{bf=bn=ff=fn=0;}
+ const hipY=y-11;
+ cx.lineWidth=4.2;cx.globalAlpha=0.8;leg(x+10,hipY,bn,L);leg(x+33,hipY,fn,L);cx.globalAlpha=1;
+ leg(x+6,hipY,bf,L);leg(x+29,hipY,ff,L);
  // body
  cx.beginPath();cx.roundRect(x,y-26,40,20,10);cx.fill();
  // head
@@ -88,12 +99,10 @@ function drawCat(c){const x=cat.x,y=cat.y;cx.fillStyle=c.fg;
  if(state==='over'){cx.font='bold 9px sans-serif';cx.fillText('x',x+28,y-24);cx.fillText('x',x+37,y-24);}
  else if(!blink){cx.beginPath();cx.arc(x+31,y-27,2.3,0,7);cx.arc(x+39,y-27,2.3,0,7);cx.fill();}
  // whiskers
- cx.strokeStyle=c.fg;cx.lineWidth=1.3;cx.beginPath();cx.moveTo(x+44,y-22);cx.lineTo(x+53,y-24);cx.moveTo(x+44,y-19);cx.lineTo(x+53,y-17);cx.stroke();
- // legs
- cx.fillStyle=c.fg;const a=cat.ground?(run?4:0):2;
- cx.fillRect(x+4+a,y-8,5,8);cx.fillRect(x+28-a,y-8,5,8);
+ cx.lineWidth=1.3;cx.beginPath();cx.moveTo(x+44,y-22);cx.lineTo(x+53,y-24);cx.moveTo(x+44,y-19);cx.lineTo(x+53,y-17);cx.stroke();
  // tail
- cx.lineWidth=4;cx.lineCap='round';cx.beginPath();cx.moveTo(x+2,y-20);cx.quadraticCurveTo(x-10,y-26+(run?3:-3),x-8,y-38);cx.stroke();}
+ const sw=running?Math.sin(ph*0.5)*4:(!cat.ground?-5:-3);
+ cx.lineWidth=4;cx.beginPath();cx.moveTo(x+2,y-20);cx.quadraticCurveTo(x-10,y-26+sw,x-8,y-38+sw*0.5);cx.stroke();}
 function drawDust(o,c){cx.fillStyle=c.fg;const cy=GROUND-o.r;cx.beginPath();
  for(let i=0;i<14;i++){const a=i/14*Math.PI*2,rr=o.r*(0.85+0.18*Math.sin(i*2.7+o.seed));cx.lineTo(o.x+Math.cos(a)*rr,cy+Math.sin(a)*rr);}
  cx.closePath();cx.fill();cx.fillStyle=c.bg;cx.beginPath();cx.arc(o.x-o.r*0.3,cy-o.r*0.15,1.8,0,7);cx.arc(o.x+o.r*0.15,cy-o.r*0.15,1.8,0,7);cx.fill();}
@@ -117,6 +126,6 @@ function draw(){const c=col();cx.setTransform(dpr,0,0,dpr,0,0);cx.fillStyle=c.bg
 let acc=0,lt=performance.now();
 function loop(n){acc+=Math.min(n-lt,100);lt=n;while(acc>=1000/60){update();acc-=1000/60;}draw();requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-window.__mj={get speed(){return speed},get state(){return state},get score(){return score},get obs(){return obs},press,release};
+window.__mj={cat,get speed(){return speed},get state(){return state},get score(){return score},get obs(){return obs},press,release};
 })();
 </script></body></html>
