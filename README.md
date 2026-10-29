@@ -2,7 +2,7 @@
 
 먼지가 만든 고양이 점프 게임. 검은 고양이가 달리면서 굴러오는 먼지 뭉치를 뛰어넘어.
 
-**플레이:** https://meonji-mon.github.io/meonji-jump/
+**플레이:** https://dustfactory.github.io/meonji-jump/
 
 ## 조작
 - 점프: 스페이스, 위 화살표, 클릭, 화면 탭
